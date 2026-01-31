@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Cloud Visitor Log</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f7f6; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h1 { color: #232f3e; font-size: 1.5rem; margin-bottom: 1.5rem; }
+        input { width: 100%; padding: 12px; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 12px; background-color: #ff9900; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background-color: #ec7211; }
+        #response { margin-top: 1.5rem; font-weight: 500; min-height: 1.2em; }
+        .success { color: #2e7d32; }
+        .error { color: #d32f2f; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>☁️ Cloud Visitor Log</h1>
+        <input type="text" id="nameInput" placeholder="Enter your name..." autocomplete="off">
+        <button id="checkInBtn" onclick="checkIn()">Check In</button>
+        <p id="response"></p>
+    </div>
+
+    <script>
+        async function checkIn() {
+            const nameInput = document.getElementById('nameInput');
+            const responseElement = document.getElementById('response');
+            const btn = document.getElementById('checkInBtn');
+            
+            // --- REPLACE THE URL BELOW WITH YOUR ACTUAL API GATEWAY URL ---       ###########################################################################
+            const apiURL = 'API HERE';                                              
+                                                                                    // ##############################API HERE##################################
+           
+            if (!nameInput.value.trim()) {
+                responseElement.innerText = "Please enter a name!";
+                responseElement.className = "error";
+                return;
+            }
+
+            // Update UI to show loading
+            btn.innerText = "Checking in...";
+            btn.disabled = true;
+            responseElement.innerText = "";
+
+            try {
+                const response = await fetch(apiURL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ "name": nameInput.value })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // This matches the 'message' key we sent from Lambda
+                    responseElement.innerText = data.message;
+                    responseElement.className = "success";
+                    nameInput.value = ""; // Clear input on success
+                } else {
+                    responseElement.innerText = "Server Error: " + (data.message || "Unknown");
+                    responseElement.className = "error";
+                }
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                responseElement.innerText = "Network Error: Check API Gateway CORS or URL";
+                responseElement.className = "error";
+            } finally {
+                btn.innerText = "Check In";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
